@@ -1,0 +1,21 @@
+{
+  "name": "@aave-isolated/indexer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "envio dev",
+    "codegen": "envio codegen",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "sync-local-config": "node scripts/sync-local-config.mjs"
+  },
+  "dependencies": {
+    "envio": "3.17.1",
+    "viem": "2.58.6"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.10",
+    "typescript": "7.0.2"
+  }
+}

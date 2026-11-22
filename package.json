@@ -1,0 +1,27 @@
+{
+  "name": "@aave-isolated/workspace",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @aave-isolated/web dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:fork": "pnpm --filter @aave-isolated/contracts test:fork",
+    "dev:indexer": "pnpm --filter @aave-isolated/indexer dev",
+    "fork": "pnpm --filter @aave-isolated/contracts exec bash script/start-local.sh",
+    "wallet:rpc": "node apps/web/scripts/local-wallet-rpc.mjs",
+    "local:deploy": "pnpm --filter @aave-isolated/contracts exec bash script/deploy-local.sh",
+    "local:fund": "pnpm --filter @aave-isolated/contracts exec bash script/fund-local.sh",
+    "indexer:sync": "pnpm --filter @aave-isolated/indexer sync-local-config",
+    "check:contracts": "pnpm --filter @aave-isolated/contracts exec forge fmt --check",
+    "local:fund:all": "pnpm --filter @aave-isolated/web exec node --experimental-strip-types scripts/faucet-local.mjs",
+    "local:fund:usdt": "LOCAL_FAUCET_TOKENS=USDT pnpm --filter @aave-isolated/web exec node --experimental-strip-types scripts/faucet-local.mjs"
+  },
+  "devDependencies": {
+    "turbo": "2.11.13"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@aave-isolated/contracts",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test:local": "node --test script/*.test.mjs",
+    "test": "forge test --match-path test/PositionAccount.t.sol -vv",
+    "test:fork": "RUN_AAVE_LIVE_FORK=1 forge test --match-contract LiveForkLifecycleTest --threads 1 --compute-units-per-second 40 -vv"
+  }
+}

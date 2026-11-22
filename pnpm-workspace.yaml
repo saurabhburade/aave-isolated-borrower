@@ -1,0 +1,18 @@
+packages:
+  - apps/web
+  - apps/indexer
+  - contracts
+minimumReleaseAgeExclude:
+  - '@types/node@26.6.10'
+  - '@types/react@19.3.1'
+  - lucide-react@1.80.0
+allowBuilds:
+  bufferutil: false
+  keccak: false
+  utf-8-validate: false
+  "@reown/appkit": false
+overrides:
+  ws@<8.21.0: 8.23.0
+  decode-uri-component@<0.5.1: 0.5.1
+  "@walletconnect/ethereum-provider@<2.26.0": 2.26.0
+  "@walletconnect/universal-provider@<2.26.0": 2.26.0
