@@ -1,0 +1,52 @@
+{
+  "chainId": 1,
+  "network": "Ethereum",
+  "rpcUrl": "https://ethereum-rpc.publicnode.com",
+  "verifiedBlock": "26490925",
+  "verification": "read-only address, bytecode, reserve mapping, and opt-in native fork lifecycle observed 2026-11-25",
+  "markets": [
+    {
+      "id": "1/v3/0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+      "version": 3,
+      "name": "Aave V3 Ethereum Pool",
+      "venue": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "venueCodeHash": "0x96107dc4006b4c7fecd1827cfb275ffeef31e6194cd50466f85f8eb24ccf2679",
+      "implementation": "0x4295fe69b3e978eb511e4558b4407ad871612fcb",
+      "implementationCodeHash": "0xe334f592d8ff872871487568216f48dfbe98822bbf8c9c2ec55242db3a07028e",
+      "implementationKind": "erc1967-proxy",
+      "poolRevision": 12,
+      "assets": [
+        { "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "symbol": "WETH", "reserveId": "0", "role": "collateral" },
+        { "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "symbol": "USDC", "reserveId": "0", "role": "debt" }
+      ],
+      "nativeLifecycle": "fork-tested-create-borrow-repay-all-withdraw",
+      "executableFactory": null
+    },
+    {
+      "id": "1/v4/0x94e7a5dcbe816e498b89ab752661904e2f56c485",
+      "version": 4,
+      "name": "Aave V4 Ethereum Main Spoke",
+      "venue": "0x94e7A5dCbE816e498b89aB752661904E2F56c485",
+      "venueCodeHash": "0xd5a0f33aeed2fcb35727b0f4978a7c54c970a99cca1057f98f3d673ad117b542",
+      "implementation": "0xabd0e26fe17bde4f1f1187ed8aa80c274e03d8b5",
+      "implementationCodeHash": "0x41b906d98443c68139467f7bfd8194e361c8d488c55a3cded7ecbf30c9b42eb6",
+      "implementationKind": "erc1967-proxy",
+      "hub": "0xCca852Bc40e560adC3b1Cc58CA5b55638ce826c9",
+      "reserveCount": 15,
+      "assets": [
+        { "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "symbol": "WETH", "reserveId": "0", "hubAssetId": "0", "role": "collateral" },
+        { "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", "symbol": "wstETH", "reserveId": "1", "hubAssetId": "1", "role": "collateral" },
+        { "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "symbol": "USDC", "reserveId": "7", "hubAssetId": "5", "role": "debt" }
+      ],
+      "compatibleCollateralReserves": ["0", "1"],
+      "nativeLifecycle": "fork-tested-create-two-collateral-borrow-repay-all-withdraw",
+      "executableFactory": null
+    }
+  ],
+  "sources": [
+    "https://aave.com/docs/aave-v3/smart-contracts/pool",
+    "https://github.com/aave/aave-v4/blob/main/src/spoke/interfaces/ISpoke.sol",
+    "https://github.com/aave-dao/aave-address-book/blob/main/src/AaveV3Ethereum.sol",
+    "https://github.com/aave-dao/aave-address-book/blob/main/src/AaveV4Ethereum.sol"
+  ]
+}

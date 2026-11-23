@@ -1,0 +1,122 @@
+{
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8557",
+  "forkBlock": "26500211",
+  "factory": "0x1f16730c011b43dc6a62259b30e5721265883dde",
+  "factoryCodeHash": "0x66f587a611ee2a7bf26a002adae99e3ec40cd51b66d67b05ff51f8d25158463b",
+  "markets": [
+    {
+      "version": 3,
+      "venue": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "name": "Aave V3 Ethereum Pool",
+      "network": "Ethereum fork",
+      "verifiedBlock": "26500211",
+      "revision": "Aave V3 Pool revision 12",
+      "venueCodeHash": "0x96107dc4006b4c7fecd1827cfb275ffeef31e6194cd50466f85f8eb24ccf2679",
+      "implementation": "0x4295fe69b3e978eb511e4558b4407ad871612fcb",
+      "implementationCodeHash": "0xe334f592d8ff872871487568216f48dfbe98822bbf8c9c2ec55242db3a07028e",
+      "implementationKind": "erc1967-proxy",
+      "reserveIds": [
+        "0"
+      ],
+      "assets": [
+        {
+          "id": "v3-weth",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether",
+          "decimals": 18,
+          "reserveId": "0"
+        },
+        {
+          "id": "v3-usdc",
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6,
+          "reserveId": "0"
+        }
+      ]
+    },
+    {
+      "version": 4,
+      "venue": "0x94e7A5dCbE816e498b89aB752661904E2F56c485",
+      "name": "Aave V4 Main / Core",
+      "network": "Ethereum fork",
+      "verifiedBlock": "26500211",
+      "revision": "Aave V4 Ethereum address-book Main Spoke",
+      "venueCodeHash": "0xd5a0f33aeed2fcb35727b0f4978a7c54c970a99cca1057f98f3d673ad117b542",
+      "implementation": "0xabd0e26fe17bde4f1f1187ed8aa80c274e03d8b5",
+      "implementationCodeHash": "0x41b906d98443c68139467f7bfd8194e361c8d488c55a3cded7ecbf30c9b42eb6",
+      "implementationKind": "erc1967-proxy",
+      "reserveIds": [
+        "0",
+        "1",
+        "7"
+      ],
+      "assets": [
+        {
+          "id": "v4-weth",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether",
+          "decimals": 18,
+          "reserveId": "0"
+        },
+        {
+          "id": "v4-wsteth",
+          "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+          "symbol": "wstETH",
+          "name": "Wrapped stETH",
+          "decimals": 18,
+          "reserveId": "1"
+        },
+        {
+          "id": "v4-usdc",
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6,
+          "reserveId": "7"
+        }
+      ]
+    },
+    {
+      "version": 4,
+      "venue": "0x973a023A77420ba610f06b3858aD991Df6d85A08",
+      "name": "Aave V4 Bluechip / Core",
+      "network": "Ethereum fork",
+      "verifiedBlock": "26500211",
+      "revision": "Aave V4 Bluechip Spoke; Core USDC reserve 7",
+      "venueCodeHash": "0x7ec944d28e7b1386e87b9f9928e2cb861edc9c6a86f3b2aea6f01ecb94b21969",
+      "implementation": "0x7a603b734ea48cd02ef38671b6cd3e06573f7450",
+      "implementationCodeHash": "0x69f5f22ff1114b0b6e16fb1a3991171ff9c7154dfd95e156f7a29cefc33202c9",
+      "implementationKind": "erc1967-proxy",
+      "preferredDebtReserveIds": [
+        "7"
+      ],
+      "reserveIds": [
+        "0",
+        "7"
+      ],
+      "assets": [
+        {
+          "id": "v4-bluechip-weth",
+          "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "name": "Wrapped Ether",
+          "decimals": 18,
+          "reserveId": "0"
+        },
+        {
+          "id": "v4-bluechip-usdc",
+          "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "symbol": "USDC",
+          "name": "USD Coin",
+          "decimals": 6,
+          "reserveId": "7"
+        }
+      ]
+    }
+  ]
+}
