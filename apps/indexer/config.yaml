@@ -1,0 +1,21 @@
+# Generated from /Users/saurabh/Desktop/codex/aave-isolated-positions/contracts/config/local.json; do not edit by hand.
+name: aave-isolated-indexer
+description: Chain-qualified position history for owner-controlled Aave V3/V4 accounts.
+contracts:
+  - name: PositionFactory
+    events:
+      - event: "PositionCreated(address indexed owner,address indexed account,address indexed venue,uint8 version,bytes32 salt)"
+  - name: PositionAccount
+    events:
+      - event: "PositionAction(address indexed owner,uint8 indexed kind,address indexed token,uint256 reserveId,uint256 amount,bool enabled)"
+      - event: "AccountExecuted(address indexed owner,uint256 actionCount)"
+chains:
+  - id: 31337
+    start_block: 26500211
+    rpc:
+      url: http://127.0.0.1:8557
+      for: sync
+    contracts:
+      - name: PositionFactory
+        address: "0x1f16730c011b43dc6a62259b30e5721265883dde"
+      - name: PositionAccount

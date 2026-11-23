@@ -1,0 +1,42 @@
+"""A single position is chain + account, never wallet-level aggregation."""
+type Position {
+  id: ID!
+  chainId: Int!
+  account: String!
+  owner: String!
+  venue: String!
+  version: Int!
+  salt: String!
+  createdBlock: BigInt!
+  createdTransaction: String!
+  latestBlock: BigInt!
+  status: String!
+  actions: [PositionAction!]! @derivedFrom(field: "position")
+  executions: [AccountExecution!]! @derivedFrom(field: "position")
+}
+
+type PositionAction {
+  id: ID!
+  chainId: Int!
+  position: Position!
+  owner: String!
+  kind: Int!
+  token: String!
+  reserveId: BigInt!
+  amount: BigInt!
+  enabled: Boolean!
+  blockNumber: BigInt!
+  transactionHash: String!
+  logIndex: Int!
+}
+
+type AccountExecution {
+  id: ID!
+  chainId: Int!
+  position: Position!
+  owner: String!
+  actionCount: BigInt!
+  blockNumber: BigInt!
+  transactionHash: String!
+  logIndex: Int!
+}
