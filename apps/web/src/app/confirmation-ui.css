@@ -1,0 +1,61 @@
+/* Reference confirmation composition; Aave details use the same surface tokens. */
+.review-dialog .review-status { flex:none; max-height:30dvh; overflow-y:auto; }
+.review-dialog .aave-review-body { --review-body-inline:26px; padding:20px var(--review-body-inline); }
+.review-dialog .review-identity { grid-template-columns:1fr; }
+.review-dialog .review-identity strong, .review-dialog .review-identity span { overflow-wrap:anywhere; }
+.review-dialog .review-metrics:not(.aave-reference-metrics) { grid-template-columns:1fr 1fr; }
+.review-dialog .aave-reference-metrics { display:block; padding:6px 26px; background:transparent; border-radius:0; }
+.review-dialog .aave-reference-metrics dd { min-width:0; overflow-wrap:anywhere; }
+.review-dialog .review-receive .token-mark { width:38px; height:38px; flex:none; }
+.review-dialog .review-metrics strong, .review-dialog .management-preview b { font-variant-numeric:tabular-nums; }
+.review-dialog .approval-row > svg { width:18px; height:18px; flex:none; }
+.review-dialog .movement-row > strong { text-align:right; font-variant-numeric:tabular-nums; }
+.review-dialog .manage-form label { display:flex; flex-direction:column; gap:8px; }
+.review-dialog .manage-form { gap:12px; padding-top:12px; background:var(--popover); }
+.review-dialog .position-manage-actions { --tab-gap:0px; border:0; background:color-mix(in oklab,var(--foreground) 5%,var(--card)); }
+.review-dialog .position-manage-actions [role=tab] { flex:1 0 auto; width:fit-content; min-height:36px; padding-inline:12px; font-size:13px; font-weight:400; white-space:nowrap; text-align:center; transition:color 150ms ease; }
+.review-dialog .position-manage-actions [role=tab]:hover:not(:disabled) { color:var(--foreground); }
+.review-dialog .position-manage-actions [role=tab]:focus-visible { outline-offset:-2px; }
+.review-dialog .position-manage-tab-indicator { background:var(--popover); box-shadow:none; }
+.review-dialog .manage-form .position-manage-panel { min-width:0; }
+.review-dialog [data-slot=input-group].manage-amount-card { width:calc(100% + var(--review-body-inline) + var(--review-body-inline)); margin-inline:calc(-1 * var(--review-body-inline)); padding:12px var(--review-body-inline) 0; border:1px solid color-mix(in oklab,var(--border) 65%,transparent); border-inline:0; border-radius:0; background:var(--amount-surface); box-shadow:none; }
+.review-dialog .manage-amount-card .amount-line { gap:8px; }
+.review-dialog .manage-amount-card [data-slot=input-group-control] { height:48px; font-size:32px; line-height:40px; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+.review-dialog .manage-asset-trigger, .review-dialog .manage-asset-badge { display:inline-flex; align-items:center; gap:8px; min-width:0; max-width:150px; min-height:44px; flex:none; padding:6px 0; border:0; background:transparent; box-shadow:none; font-size:13px; font-weight:600; }
+.review-dialog .manage-asset-trigger > span:not(.token-mark), .review-dialog .manage-asset-badge > span:not(.token-mark) { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.review-dialog .manage-asset-trigger .token-mark, .review-dialog .manage-asset-badge .token-mark { width:28px; height:28px; flex:none; }
+.review-dialog .manage-asset-trigger .token-mark img, .review-dialog .manage-asset-badge .token-mark img { width:28px; height:28px; }
+.review-dialog .manage-asset-trigger > svg { width:14px; height:14px; }
+.review-dialog .manage-amount-meta { gap:8px; margin-top:4px; min-height:36px; font-size:11px; font-variant-numeric:tabular-nums; }
+.review-dialog .manage-position-balance { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.review-dialog .manage-wallet-balance { display:flex; align-items:center; gap:4px; flex:none; white-space:nowrap; }
+.review-dialog .manage-max { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:0; border:0; border-radius:8px; background:transparent; font:inherit; font-weight:600; color:var(--muted-foreground); cursor:pointer; }
+.review-dialog .manage-max:hover, .review-dialog .manage-max[aria-pressed=true] { color:var(--foreground); text-decoration:underline; text-underline-offset:3px; }
+.review-dialog .manage-max:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+.review-dialog .manage-max:disabled { opacity:.5; cursor:not-allowed; }
+.review-dialog .manage-impact { display:flex; flex-direction:column; gap:12px; margin:2px 0; font-size:13px; }
+.review-dialog .manage-impact > div { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 12px; }
+.review-dialog .manage-impact dt { color:var(--muted-foreground); }
+.review-dialog .manage-impact dd { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:flex-end; gap:7px; margin:0; font-weight:600; font-variant-numeric:tabular-nums; }
+.review-dialog .manage-impact-arrow { flex:none; align-self:center; color:var(--muted-foreground); }
+.review-dialog .manage-impact-next { display:inline-flex; align-items:baseline; gap:7px; overflow:hidden; white-space:nowrap; }
+.review-dialog .manage-impact-next strong { font-weight:600; }
+.review-dialog .manage-number { display:inline-flex; vertical-align:bottom; }
+.review-dialog .manage-number-display { display:inline-flex; align-items:center; line-height:1.25; }
+.review-dialog .manage-digit { display:inline-block; width:1ch; height:1.25em; overflow:hidden; }
+.review-dialog .manage-digit-strip { display:flex; flex-direction:column; }
+.review-dialog .manage-digit-strip > span { display:block; height:1.25em; flex:none; line-height:1.25; text-align:center; }
+.review-dialog:has(.manage-form) .review-footer > div { grid-template-columns:auto minmax(0,1fr); }
+.execution-notice { overflow-wrap:anywhere; }
+.borrow-column .review-notice { --execution-gutter:12px; border-radius:12px; margin-top:10px; border-top:0; }
+.review-dialog [data-slot=dialog-close] { width:40px; height:40px; top:10px; right:12px; }
+@media (max-width:520px) {
+  .review-dialog .aave-review-body { --review-body-inline:20px; }
+  .review-dialog .position-manage-actions [role=tab] { min-height:44px; padding-inline:6px; font-size:12px; }
+  .review-dialog .aave-reference-metrics { padding-inline:20px; }
+  .review-dialog .review-metrics:not(.aave-reference-metrics) { grid-template-columns:1fr; }
+}
+@media (max-width:360px) {
+  .review-dialog .position-manage-actions [role=tab] { padding-inline:4px; font-size:12px; }
+  .review-dialog:has(.manage-form) .review-footer > div { grid-template-columns:1fr; }
+}

@@ -1,0 +1,97 @@
+.page {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 48px 24px calc(48px + 20svh);
+  background: #0a0a0a;
+  color: #ededed;
+  color-scheme: dark;
+}
+
+.content {
+  width: 100%;
+  max-width: 724px;
+}
+
+.icon {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 56px;
+}
+
+.title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.description {
+  margin: 32px 0 0;
+  font-size: 28px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.actions button {
+  display: inline-flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 8px 24px;
+  font: inherit;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.5;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.actions button:focus-visible {
+  outline: 2px solid #ededed;
+  outline-offset: 4px;
+}
+
+.reload {
+  background: #ededed;
+  color: #0a0a0a;
+}
+
+.reload:hover {
+  background: #d5d5d5;
+}
+
+.actions .back {
+  border-color: #2d2d2d;
+  background: transparent;
+  color: #ededed;
+}
+
+.actions .back:hover {
+  border-color: #555;
+  background: #191919;
+}
+
+@media (max-width: 767px) {
+  .content { max-width: 480px; }
+  .icon { width: 48px; height: 48px; margin-bottom: 32px; }
+  .title { font-size: 32px; }
+  .description { margin-top: 20px; font-size: 18px; }
+  .actions { gap: 12px; margin-top: 28px; }
+  .actions button { min-height: 48px; border-radius: 8px; padding: 8px 18px; font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actions button { transition: none; }
+}
