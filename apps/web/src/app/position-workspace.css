@@ -1,0 +1,70 @@
+/* Adaptations for native position collections; shared component styling is copied verbatim. */
+/* Light panels follow the reference's white surfaces and quiet outlines. */
+:root:not(.dark) .borrow-grid .market-history-card,
+:root:not(.dark) .borrow-grid .quote-column > [data-slot=card],
+:root:not(.dark) .borrow-grid .borrow-column > [data-slot=card],
+:root:not(.dark) .portfolio-positions-card,
+:root:not(.dark) .workspace-grid .ui-card {
+  box-shadow:0 2px 4px rgb(0 0 0 / 3%), 0 0 0 1px rgb(0 0 0 / 6%);
+}
+:root:not(.dark) [data-slot=button][data-variant=default]:hover:not(:disabled),
+:root:not(.dark) .ui-button-primary:hover:not(:disabled) { background-color:#292929; }
+/* Keep wallet actions visually still under the pointer. */
+:root .header-wallet[data-slot=button][data-variant=default]:hover:not(:disabled) { background-color:var(--primary); }
+:root .header-wallet[data-slot=button][data-variant=secondary]:hover:not(:disabled) { background-color:var(--secondary); }
+/* Match the time range selector to the market version filters in light mode. */
+:root:not(.dark) .history-controls [data-slot=toggle-group] {
+  gap:2px;
+  background:var(--muted);
+}
+:root:not(.dark) .history-controls [data-slot=toggle-group-item] {
+  height:30px;
+  padding-inline:10px;
+  color:var(--muted-foreground);
+  font-size:11px;
+  font-weight:600;
+}
+:root:not(.dark) .history-controls [data-slot=toggle-group-item][data-pressed] {
+  background:var(--card);
+  color:var(--foreground);
+  box-shadow:0 1px 3px rgb(0 0 0 / 8%);
+}
+.market-pair-icons > .token-mark { position:absolute; top:0; left:0; width:40px; height:40px; }
+.market-pair-icons > .token-mark + .token-mark { left:24px; }
+.market-pair-icons .token-mark img { width:40px; height:40px; }
+.collateral-entry { position:relative; min-width:0; }
+.collateral-remove { position:absolute; top:0; right:0; transform:translate(25%,-25%); z-index:1; background:var(--secondary); }
+.add-collateral[data-slot=button] { justify-self:start; width:fit-content; margin:0 0 2px; color:var(--muted-foreground); }
+.borrow-primary[data-slot=button] { margin-top:10px; }
+.amount-loading { height:100px; }
+/* Match loaded asset buttons, including their compact tablet proportions. */
+.amount-asset-skeleton { height:50px; }
+@media (min-width:640px) and (max-width:900px) { .amount-asset-skeleton { height:44px; } }
+/* Reserve the legend before rates arrive; extra series scroll within this space. */
+.history-content { container-type:inline-size; }
+.history-legend-space { height:65.5px; margin-top:12px; overflow:auto; }
+.history-legend-space .history-legend { margin-top:0; }
+.history-empty { min-height:260px; }
+.history-chart-stage { position:relative; height:260px; }
+.history-loading-layer { position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity 250ms ease-out; }
+.history-chart-result { height:100%; opacity:1; transition:opacity 300ms ease-out; }
+.history-chart-stage[data-loading] .history-loading-layer { opacity:1; }
+.history-chart-stage[data-loading] .history-chart-result { opacity:0; pointer-events:none; }
+.history-chart-stage:not([data-loading]) .history-skeleton { animation:none; }
+.history-legend-space { opacity:1; transition:opacity 300ms ease-out; }
+.history-legend-space[data-loading] { opacity:0; }
+@media (prefers-reduced-motion:reduce) {
+  .history-loading-layer,.history-chart-result,.history-legend-space { transition:none; }
+}
+@container (min-width:560px) { .history-legend-space { height:41px; } }
+@container (min-width:720px) { .history-legend-space { height:16.5px; } }
+.market-filter-controls { display:flex; align-items:center; gap:8px; }
+.market-disabled-reason { display:flex; align-items:flex-start; gap:6px; max-width:270px; padding:0 8px 8px 0; white-space:normal; color:var(--muted-foreground); font-size:10px; }
+.market-disabled-reason svg { width:12px; height:12px; flex:none; margin-top:2px; }
+[data-slot=dialog-content][data-variant=asset-picker] .token-mark { width:28px; height:28px; }
+[data-slot=dialog-content][data-variant=asset-picker] .token-mark img { width:28px; height:28px; position:static; }
+[data-slot=dialog-content][data-variant=asset-picker] .token-art-fallback { display:grid; width:28px; height:28px; place-items:center; background:var(--secondary); border-radius:50%; font-size:12px; }
+.borrow-grid .position-stats dd { font-variant-numeric:tabular-nums; }
+.portfolio-positions-table small,
+.portfolio-position-amount > span { font-weight:600; }
+@media(max-width:639px) { .market-filter-controls { gap:0; } .market-filter-controls > button { display:none; } .borrow-column { width:100%; } }
