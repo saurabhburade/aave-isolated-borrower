@@ -5,6 +5,8 @@
     "build": "forge build",
     "test:local": "node --test script/*.test.mjs",
     "test": "forge test --match-path test/PositionAccount.t.sol -vv",
+    "test:gas": "forge test --match-path test/GasBenchmarks.t.sol --isolate",
+    "test:gas:check": "forge test --match-path test/GasBenchmarks.t.sol --isolate --gas-snapshot-check true --gas-snapshot-emit false",
     "test:fork": "RUN_AAVE_LIVE_FORK=1 forge test --match-contract LiveForkLifecycleTest --threads 1 --compute-units-per-second 40 -vv"
   }
 }

@@ -1,9 +1,33 @@
-# Contract deployment manifests
+# Deployment manifests
 
-`verified-ethereum.json` records the independently checked Ethereum V3 Pool revision 12 and V4 Main Spoke, with proxy/implementation hashes and native lifecycle evidence. It has no public-chain application factory.
+Deployment manifests identify the factory and protocol contracts used by the application. The backend verifies their chain, addresses, and code hashes before enabling execution.
 
-`local.json` records the current disposable factory on chain 31337, port 8557. From the repository root, run `pnpm fork`, then `pnpm local:deploy` to regenerate it after resetting Anvil. The script reads the actual source fork block, uses the unlocked local account by default, and refuses public-chain RPCs.
+| File | Purpose |
+| --- | --- |
+| `verified-ethereum.json` | Reference Ethereum V3 Pool and V4 Main Spoke identities, implementation hashes, and lifecycle evidence |
+| `local.json` | Factory deployment and optional market pins for the local Ethereum fork |
 
-Venue and factory code hashes are verified before discovery and execution. An absent, stale, or mismatched manifest keeps markets unavailable.
+The reference manifest has no public application factory. Local execution uses Anvil chain 31337.
 
-The local market list is an optional set of bytecode pins and reserve preferences. The backend also discovers Ethereum markets from the official Aave catalog, validates their deployment and adapter interface on the current fork, and reads their native reserves when selected. The factory takes version and venue per position; it has no market-registration step.
+## Generate the local manifest
+
+Run from the repository root:
+
+```sh
+pnpm fork
+```
+
+Keep the fork running, then run in another terminal:
+
+```sh
+pnpm local:deploy
+pnpm indexer:sync
+```
+
+The deployment script reads the source fork block and writes the deployed factory address and code hashes to `local.json`. Regenerate the manifest after resetting the fork or deploying a new factory.
+
+## Market discovery
+
+Local market entries provide optional bytecode pins and reserve preferences. The backend also discovers Ethereum markets from the Aave catalog and validates each selected venue on the fork. New compatible markets require no factory registration.
+
+An absent, stale, or mismatched manifest disables execution. See [local development](../../docs/local-development.md) for configuration and [protocol sources](../../docs/protocol-sources.md) for contract provenance.
