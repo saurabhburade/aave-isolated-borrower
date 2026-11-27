@@ -1,0 +1,23 @@
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const {execFileSync} = require('node:child_process');
+(async () => {
+  const file=path.join(__dirname,'aave-isolated-positions-poc-1080p.mp4');
+  const edit=JSON.parse(await fs.readFile(path.join(__dirname,'edit.json')));
+  const duration=edit.scenes.reduce((n,s)=>n+s.duration,0);
+  const info=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-show_chapters','-of','json',file],{encoding:'utf8'}));
+  const v=info.streams.find(s=>s.codec_type==='video');
+  assert.equal(v.codec_name,'h264');
+  assert.equal(v.width,1920); assert.equal(v.height,1080);
+  assert.equal(v.pix_fmt,'yuv420p'); assert.equal(v.r_frame_rate,'30/1');
+  assert(Math.abs(Number(info.format.duration)-duration)<0.1);
+  assert.equal(info.chapters.length,edit.scenes.length);
+  assert.equal(Number(v.nb_frames),duration*edit.fps);
+  execFileSync('ffmpeg',['-v','error','-i',file,'-map','0:v:0','-f','null','-'],{stdio:['ignore','ignore','pipe']});
+  const bytes=await fs.readFile(file);
+  assert(bytes.indexOf(Buffer.from('moov'))<bytes.indexOf(Buffer.from('mdat')),'streamable MP4 header must precede video data');
+  const report={checks:'PASS',file,width:v.width,height:v.height,fps:v.r_frame_rate,codec:v.codec_name,profile:v.profile,pixelFormat:v.pix_fmt,frames:Number(v.nb_frames),duration:Number(info.format.duration),bytes:bytes.length,chapters:info.chapters.length,fullDecode:'PASS',fastStart:true};
+  await fs.writeFile(path.join(__dirname,'export-verification.json'),JSON.stringify(report,null,2));
+  console.log(JSON.stringify(report,null,2));
+})().catch(e=>{console.error(e);process.exitCode=1;});

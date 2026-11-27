@@ -1,0 +1,67 @@
+{
+  "verifiedAt": "2026-11-27T11:07:15.413Z",
+  "chainId": 31337,
+  "owner": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+  "venue": "0x94e7A5dCbE816e498b89aB752661904E2F56c485",
+  "version": 4,
+  "checks": "PASS",
+  "positions": [
+    {
+      "account": "0x90FC8dA66Db741Dc8eBF5FFEB105F5629d2D1f5E",
+      "collaterals": [
+        {
+          "symbol": "WETH",
+          "amount": "1.000000099207653496"
+        },
+        {
+          "symbol": "wstETH",
+          "amount": "0.15"
+        }
+      ],
+      "debt": "400.000177",
+      "healthFactor": "4.163944693152539012"
+    },
+    {
+      "account": "0x582c094780F6131A97Da45d1f962443E16Fc9163",
+      "collaterals": [
+        {
+          "symbol": "WETH",
+          "amount": "0.70000006049443655"
+        }
+      ],
+      "debt": "250.000077",
+      "healthFactor": "3.941978815942386806"
+    }
+  ],
+  "receipts": [
+    {
+      "hash": "0xfe1c933601b8437d45c39bcd7a3d97109e335b70f51ddb8c9545a5e55d327a7e",
+      "status": "success",
+      "blockNumber": "26500237",
+      "to": "0x1f16730c011b43dc6a62259b30e5721265883dde"
+    },
+    {
+      "hash": "0x1916956ed565206ed8a0ca35fda9b2010bb60648155d9a806d8a328d0994ed8f",
+      "status": "success",
+      "blockNumber": "26500241",
+      "to": "0x90fc8da66db741dc8ebf5ffeb105f5629d2d1f5e"
+    },
+    {
+      "hash": "0x3277c4e7034169be34b8600076a99e9941d0c603ba55ffa35a6a298827e6a87c",
+      "status": "success",
+      "blockNumber": "26500243",
+      "to": "0x90fc8da66db741dc8ebf5ffeb105f5629d2d1f5e"
+    },
+    {
+      "hash": "0xde5ab2b5495f29e6dce154477dc63682e87794f16bc1aad3763ac940d99ebd75",
+      "status": "success",
+      "blockNumber": "26500239",
+      "to": "0x1f16730c011b43dc6a62259b30e5721265883dde"
+    }
+  ],
+  "notes": [
+    "Recorded transactions execute native protocol calls on a local Ethereum fork.",
+    "Position B received no management actions; interest and supply accrual continue naturally.",
+    "No liquidation was induced. Shared oracle, market and protocol risks remain."
+  ]
+}

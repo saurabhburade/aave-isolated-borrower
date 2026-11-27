@@ -1,0 +1,51 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const { createPublicClient, http, parseAbi } = require('../../apps/web/node_modules/viem');
+(async () => {
+  const root = __dirname;
+  const source = process.env.DEMO_OUT || 'raw';
+  const before = JSON.parse(await fs.readFile(path.join(root,source,'before-management.json')));
+  const after = JSON.parse(await fs.readFile(path.join(root,source,'after-management.json')));
+  const client = createPublicClient({transport:http('http://127.0.0.1:8557')});
+  assert.equal(await client.getChainId(),31337);
+  assert.equal(before.positions.length,2);
+  assert.equal(after.positions.length,2);
+  const a = after.positions.find(p=>p.collaterals.some(c=>c.asset.symbol==='wstETH'));
+  const b = after.positions.find(p=>p.account!==a.account);
+  const a0 = before.positions.find(p=>p.account===a.account);
+  const b0 = before.positions.find(p=>p.account===b.account);
+  assert.notEqual(a.account.toLowerCase(),b.account.toLowerCase());
+  assert.equal(a.owner,b.owner);
+  assert.equal(a.market.venue,b.market.venue);
+  assert.equal(a.market.version,4);
+  assert.equal(b.market.version,4);
+  assert.equal(a.freshness.status,'fresh');
+  assert.equal(b.freshness.status,'fresh');
+  const amount = (p,symbol,side='debts')=>Number(p[side].find(c=>c.asset.symbol===symbol)?.amount||0);
+  assert(Math.abs(amount(a,'USDC')-400)<0.01);
+  assert(Math.abs(amount(a0,'USDC')-500)<0.01);
+  assert.equal(amount(a,'wstETH','collaterals'),0.15);
+  assert.equal(amount(a0,'wstETH','collaterals'),0);
+  assert(Math.abs(amount(b,'USDC')-amount(b0,'USDC'))<0.01);
+  assert(Math.abs(amount(b,'WETH','collaterals')-0.7)<0.00001);
+  assert.deepEqual(b.activity.map(a=>a.id),b0.activity.map(a=>a.id));
+  assert(Number(a.risk.healthFactor)>Number(a0.risk.healthFactor));
+  const abi=parseAbi(['function owner() view returns(address)','function venue() view returns(address)','function version() view returns(uint8)','function chainId() view returns(uint256)']);
+  for(const p of [a,b]){
+    assert((await client.getCode({address:p.account})).length>2);
+    assert.equal((await client.readContract({address:p.account,abi,functionName:'owner'})).toLowerCase(),p.owner.toLowerCase());
+    assert.equal((await client.readContract({address:p.account,abi,functionName:'venue'})).toLowerCase(),p.market.venue.toLowerCase());
+    assert.equal(await client.readContract({address:p.account,abi,functionName:'version'}),4);
+    assert.equal(await client.readContract({address:p.account,abi,functionName:'chainId'}),31337n);
+  }
+  const hashes=[...new Set(after.positions.flatMap(p=>p.activity.map(a=>a.transactionHash)))];
+  assert.equal(hashes.length,4);
+  const receipts=[];
+  for(const hash of hashes){const r=await client.getTransactionReceipt({hash});assert.equal(r.status,'success');receipts.push({hash,status:r.status,blockNumber:r.blockNumber.toString(),to:r.to});}
+  const managementReceipts=receipts.filter(r=>r.to?.toLowerCase()===a.account.toLowerCase());
+  assert.equal(managementReceipts.length,2);
+  const report={verifiedAt:new Date().toISOString(),chainId:31337,owner:a.owner,venue:a.market.venue,version:4,checks:'PASS',positions:[a,b].map(p=>({account:p.account,collaterals:p.collaterals.map(c=>({symbol:c.asset.symbol,amount:c.amount})),debt:p.debts[0].amount,healthFactor:p.risk.healthFactor})),receipts,notes:['Recorded transactions execute native protocol calls on a local Ethereum fork.','Position B received no management actions; interest and supply accrual continue naturally.','No liquidation was induced. Shared oracle, market and protocol risks remain.']};
+  await fs.writeFile(path.join(root,'verification.json'),JSON.stringify(report,null,2));
+  console.log(JSON.stringify(report,null,2));
+})().catch(e=>{console.error(e);process.exitCode=1;});

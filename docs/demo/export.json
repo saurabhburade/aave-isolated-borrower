@@ -1,0 +1,179 @@
+{
+  "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/aave-isolated-positions-poc-1080p.mp4",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "duration": 133,
+  "source": "https://x.com/saurabh_evm/status/2124153197103353857",
+  "scenes": [
+    {
+      "name": "03-browse",
+      "source": {
+        "name": "03-browse",
+        "start": 17.024,
+        "duration": 10,
+        "end": 25.212
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/03-browse.mp4",
+      "duration": 10,
+      "chapter": "01 / Discover markets",
+      "caption": "Create separate borrowing positions from one wallet. Start with WETH collateral and USDC debt."
+    },
+    {
+      "name": "04-filter",
+      "source": {
+        "name": "04-filter",
+        "start": 25.645,
+        "duration": 9,
+        "end": 32.625
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/04-filter.mp4",
+      "duration": 8,
+      "chapter": "01 / Discover markets",
+      "caption": "Filter between V3 and V4. The comparison and rate history follow the selected assets."
+    },
+    {
+      "name": "05-select",
+      "source": {
+        "name": "05-select",
+        "start": 33.064,
+        "duration": 10,
+        "end": 37.707
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/05-select.mp4",
+      "duration": 9,
+      "chapter": "02 / Create position A",
+      "caption": "Select a V4 market. Its displayed base APY excludes the position’s collateral risk premium."
+    },
+    {
+      "name": "06-review",
+      "source": {
+        "name": "06-review",
+        "start": 38.141,
+        "duration": 12,
+        "end": 44.093
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/06-review.mp4",
+      "duration": 11,
+      "chapter": "02 / Create position A",
+      "caption": "Review collateral, debt, estimated health factor and the exact market before signing."
+    },
+    {
+      "name": "07-create-a",
+      "source": {
+        "name": "07-create-a",
+        "start": 44.542,
+        "duration": 10,
+        "end": 65.661
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/07-create-a.mp4",
+      "duration": 10,
+      "chapter": "02 / Create position A",
+      "caption": "The test wallet approves the tokens and creates the account through the local factory."
+    },
+    {
+      "name": "08-second",
+      "source": {
+        "name": "08-second",
+        "start": 68.668,
+        "duration": 15,
+        "end": 75.616
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/08-second.mp4",
+      "duration": 12,
+      "chapter": "03 / Create position B",
+      "caption": "Same wallet, same V4 market. A new position gets a different account and its own debt."
+    },
+    {
+      "name": "09-create-b",
+      "source": {
+        "name": "09-create-b",
+        "start": 77.171,
+        "duration": 10,
+        "end": 88.096
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/09-create-b.mp4",
+      "duration": 8,
+      "chapter": "03 / Create position B",
+      "caption": "Create the second account in the same market. Each position has a distinct on-chain address."
+    },
+    {
+      "name": "10-portfolio",
+      "source": {
+        "name": "10-portfolio",
+        "start": 102.331,
+        "duration": 12,
+        "end": 107.448
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/10-portfolio.mp4",
+      "duration": 11,
+      "chapter": "04 / Separate accounts",
+      "caption": "Two accounts, one owner. Each row has its own collateral, debt and health factor."
+    },
+    {
+      "name": "11-manage",
+      "source": {
+        "name": "11-manage",
+        "start": 245.645,
+        "duration": 12,
+        "end": 257.02
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/11-manage.mp4",
+      "duration": 14,
+      "chapter": "05 / Add collateral",
+      "caption": "Add a second collateral asset to Position A. Preview the change in its own health factor."
+    },
+    {
+      "name": "12-add-confirmed",
+      "source": {
+        "name": "12-add-confirmed",
+        "start": 257.534,
+        "duration": 10,
+        "end": 266.184
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/12-add-confirmed.mp4",
+      "duration": 10,
+      "chapter": "05 / Add collateral",
+      "caption": "Confirm the local transaction. WETH and wstETH now back the same account."
+    },
+    {
+      "name": "13-repay",
+      "source": {
+        "name": "13-repay",
+        "start": 269.132,
+        "duration": 13,
+        "end": 276.226
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/13-repay.mp4",
+      "duration": 12,
+      "chapter": "06 / Repay one account",
+      "caption": "Repay 100 USDC on Position A. Position B’s principal stays separate."
+    },
+    {
+      "name": "14-repay-confirmed",
+      "source": {
+        "name": "14-repay-confirmed",
+        "start": 276.692,
+        "duration": 8,
+        "end": 280.6
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/14-repay-confirmed.mp4",
+      "duration": 8,
+      "chapter": "06 / Repay one account",
+      "caption": "The repayment is confirmed and the app refreshes this account’s native balances."
+    },
+    {
+      "name": "15-final-portfolio",
+      "source": {
+        "name": "15-final-portfolio",
+        "start": 285.54,
+        "duration": 10,
+        "end": 290.144
+      },
+      "output": "/Users/saurabh/Desktop/codex/aave-isolated-positions/docs/demo/raw/clips/15-final-portfolio.mp4",
+      "duration": 10,
+      "chapter": "07 / Verify the boundary",
+      "caption": "Position A now has two collaterals and ≈400 USDC debt. Position B keeps its separate ≈250 USDC loan."
+    }
+  ]
+}

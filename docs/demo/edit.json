@@ -1,0 +1,91 @@
+{
+  "title": "Aave isolated positions — post-research PoC",
+  "research": "https://x.com/saurabh_evm/status/2124153197103353857",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "scenes": [
+    {
+      "name": "03-browse",
+      "duration": 10,
+      "chapter": "01 / Discover markets",
+      "caption": "Create separate borrowing positions from one wallet. Start with WETH collateral and USDC debt."
+    },
+    {
+      "name": "04-filter",
+      "duration": 8,
+      "chapter": "01 / Discover markets",
+      "caption": "Filter between V3 and V4. The comparison and rate history follow the selected assets."
+    },
+    {
+      "name": "05-select",
+      "duration": 9,
+      "chapter": "02 / Create position A",
+      "caption": "Select a V4 market. Its displayed base APY excludes the position’s collateral risk premium."
+    },
+    {
+      "name": "06-review",
+      "duration": 11,
+      "chapter": "02 / Create position A",
+      "caption": "Review collateral, debt, estimated health factor and the exact market before signing."
+    },
+    {
+      "name": "07-create-a",
+      "duration": 10,
+      "chapter": "02 / Create position A",
+      "caption": "The test wallet approves the tokens and creates the account through the local factory.",
+      "skipWait": true
+    },
+    {
+      "name": "08-second",
+      "duration": 12,
+      "chapter": "03 / Create position B",
+      "caption": "Same wallet, same V4 market. A new position gets a different account and its own debt."
+    },
+    {
+      "name": "09-create-b",
+      "duration": 8,
+      "chapter": "03 / Create position B",
+      "caption": "Create the second account in the same market. Each position has a distinct on-chain address.",
+      "skipWait": true
+    },
+    {
+      "name": "10-portfolio",
+      "duration": 11,
+      "chapter": "04 / Separate accounts",
+      "caption": "Two accounts, one owner. Each row has its own collateral, debt and health factor."
+    },
+    {
+      "name": "11-manage",
+      "duration": 14,
+      "chapter": "05 / Add collateral",
+      "caption": "Add a second collateral asset to Position A. Preview the change in its own health factor."
+    },
+    {
+      "name": "12-add-confirmed",
+      "duration": 10,
+      "chapter": "05 / Add collateral",
+      "caption": "Confirm the local transaction. WETH and wstETH now back the same account.",
+      "skipWait": true
+    },
+    {
+      "name": "13-repay",
+      "duration": 12,
+      "chapter": "06 / Repay one account",
+      "caption": "Repay 100 USDC on Position A. Position B’s principal stays separate."
+    },
+    {
+      "name": "14-repay-confirmed",
+      "duration": 8,
+      "chapter": "06 / Repay one account",
+      "caption": "The repayment is confirmed and the app refreshes this account’s native balances.",
+      "skipWait": true
+    },
+    {
+      "name": "15-final-portfolio",
+      "duration": 10,
+      "chapter": "07 / Verify the boundary",
+      "caption": "Position A now has two collaterals and ≈400 USDC debt. Position B keeps its separate ≈250 USDC loan."
+    }
+  ]
+}
