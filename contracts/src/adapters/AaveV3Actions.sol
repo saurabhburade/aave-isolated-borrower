@@ -5,12 +5,24 @@ import { Action, ActionKind, IERC20 } from "../interfaces/Types.sol";
 import { IPool, V3ReserveData } from "../interfaces/Protocols.sol";
 import { SafeToken } from "../SafeToken.sol";
 
-/// @notice Typed Aave V3 calls made with the position account as msg.sender.
+/// @notice Executes typed Aave V3 operations in the calling position account.
 library AaveV3Actions {
+    /// @notice The token or reserve does not match the supported venue configuration.
     error InvalidReserve();
+    /// @notice The action kind or amount is unsupported for this reserve.
     error InvalidAction();
+    /// @notice The requested amount exceeds available debt or balance, or the received amount is insufficient.
     error AmountUnavailable();
 
+    /// @notice Executes one supported V3 operation for the calling account.
+    /// @dev Borrowed and withdrawn assets are forwarded to the owner; temporary protocol approvals are cleared.
+    /// @dev Supply requires a nonzero finite amount. Repay accepts type(uint256).max for full debt repayment.
+    /// @dev Full repayment requires enough idle tokens to cover the debt; explicit repayment cannot exceed debt or balance.
+    /// @param pool Aave V3 Pool to call.
+    /// @param action Typed action containing the reserve, amount, and collateral setting.
+    /// @param owner Position owner and recipient of borrowed or withdrawn assets.
+    /// @return actual Underlying amount moved, or zero for collateral-setting actions.
+    /// @return increasesRisk True for borrowing, withdrawal, or disabling collateral, including supply with collateral disabled.
     function execute(
         IPool pool,
         Action calldata action,
@@ -74,6 +86,10 @@ library AaveV3Actions {
         revert InvalidAction();
     }
 
+    /// @notice Reads a user health factor from the V3 venue.
+    /// @param pool Aave V3 Pool to call.
+    /// @param account Position account being queried or operated on.
+    /// @return value Health factor scaled by 1e18.
     function healthFactor(
         IPool pool,
         address account
@@ -81,6 +97,10 @@ library AaveV3Actions {
         (,,,,, value) = pool.getUserAccountData(account);
     }
 
+    /// @notice Reads the reserve variable borrow rate.
+    /// @param pool Aave V3 Pool to call.
+    /// @param token Underlying ERC20 token contract.
+    /// @return Annualized variable borrow rate scaled by 1e27.
     function borrowRate(
         IPool pool,
         address token
@@ -91,6 +111,10 @@ library AaveV3Actions {
         return uint256(reserve.currentVariableBorrowRate);
     }
 
+    /// @notice Resets the token allowance to zero before setting the requested allowance.
+    /// @param token Underlying ERC20 token contract.
+    /// @param spender Address allowed to spend the tokens.
+    /// @param amount New allowance in token units; zero only clears the allowance.
     function _approve(
         address token,
         address spender,

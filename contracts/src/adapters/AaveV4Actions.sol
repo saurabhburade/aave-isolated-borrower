@@ -5,14 +5,27 @@ import { Action, ActionKind, IERC20 } from "../interfaces/Types.sol";
 import { IHub, ISpoke, V4AccountData, V4Reserve } from "../interfaces/Protocols.sol";
 import { SafeToken } from "../SafeToken.sol";
 
-/// @notice Typed Aave V4 Spoke calls made with the position account as msg.sender.
+/// @notice Executes typed Aave V4 Spoke operations in the calling position account.
 library AaveV4Actions {
+    /// @notice The token or reserve does not match the supported venue configuration.
     error InvalidReserve();
+    /// @notice The action kind or amount is unsupported for this reserve.
     error InvalidAction();
+    /// @notice The requested amount exceeds available debt or balance, or the received amount is insufficient.
     error AmountUnavailable();
 
+    /// @notice Basis-point denominator used to apply the V4 risk premium.
     uint256 internal constant BPS = 10_000;
 
+    /// @notice Executes one supported V4 operation for the calling account.
+    /// @dev Borrowed and withdrawn assets are forwarded to the owner; temporary protocol approvals are cleared.
+    /// @dev Supply requires a nonzero finite amount. Repay accepts type(uint256).max for full debt repayment.
+    /// @dev Full repayment requires enough idle tokens to cover the debt; explicit repayment cannot exceed debt or balance.
+    /// @param spoke Aave V4 Spoke to call.
+    /// @param action Typed action containing the reserve, amount, and collateral setting.
+    /// @param owner Position owner and recipient of borrowed or withdrawn assets.
+    /// @return actual Underlying amount moved, or zero for collateral and refresh operations.
+    /// @return increasesRisk True for borrowing, withdrawal, or disabling collateral, including supply with collateral disabled.
     function execute(
         ISpoke spoke,
         Action calldata action,
@@ -76,6 +89,10 @@ library AaveV4Actions {
         revert InvalidAction();
     }
 
+    /// @notice Reads a user health factor from the V4 venue.
+    /// @param spoke Aave V4 Spoke to call.
+    /// @param account Position account being queried or operated on.
+    /// @return Health factor scaled by 1e18.
     function healthFactor(
         ISpoke spoke,
         address account
@@ -83,6 +100,13 @@ library AaveV4Actions {
         return spoke.getUserAccountData(account).healthFactor;
     }
 
+    /// @notice Combines the Hub base rate with the account risk premium.
+    /// @dev The basis-point premium adjustment is rounded up to the next ray unit.
+    /// @param spoke Aave V4 Spoke to call.
+    /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+    /// @param token Underlying ERC20 token contract.
+    /// @param account Position account being queried or operated on.
+    /// @return Annualized account borrow rate scaled by 1e27.
     function borrowRate(
         ISpoke spoke,
         uint256 reserveId,
@@ -97,6 +121,10 @@ library AaveV4Actions {
         return baseRate + (baseRate * premium + BPS - 1) / BPS;
     }
 
+    /// @notice Resets the token allowance to zero before setting the requested allowance.
+    /// @param token Underlying ERC20 token contract.
+    /// @param spender Address allowed to spend the tokens.
+    /// @param amount New allowance in token units; zero only clears the allowance.
     function _approve(
         address token,
         address spender,

@@ -6,22 +6,36 @@ import { V3ReserveData, V4Reserve, V4AccountData, IPool, ISpoke } from "../src/i
 import { PositionAccount } from "../src/PositionAccount.sol";
 import { PositionFactory } from "../src/PositionFactory.sol";
 
+/// @notice Foundry timestamp cheatcode used by the unit tests.
 interface UnitVm {
+    /// @notice Sets the test block timestamp.
+    /// @param timestamp New block timestamp, in seconds.
     function warp(
         uint256 timestamp
     ) external;
 }
 
+/// @dev Foundry cheatcode interface used to move the unit-test clock.
 UnitVm constant unitVm = UnitVm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
+/// @notice Unrestricted test ERC20 with minting, burning, and transfer callbacks.
 contract TestToken is IERC20 {
+    /// @notice Test token display name.
     string public name;
+    /// @notice Test token decimal precision.
     uint8 public immutable decimals;
+    /// @notice Token balances in smallest token units, indexed by holder.
     mapping(address => uint256) public override balanceOf;
+    /// @notice Spending allowances indexed by holder and spender.
     mapping(address => mapping(address => uint256)) public override allowance;
+    /// @notice Contract called before transfers; zero disables the callback.
     address public callbackTarget;
+    /// @notice Calldata sent to the configured transfer callback.
     bytes public callbackData;
 
+    /// @notice Creates a test token with the supplied display name and decimal precision.
+    /// @param tokenName Display name for the test token.
+    /// @param tokenDecimals Decimal precision for the test token.
     constructor(
         string memory tokenName,
         uint8 tokenDecimals
@@ -30,6 +44,9 @@ contract TestToken is IERC20 {
         decimals = tokenDecimals;
     }
 
+    /// @notice Creates test tokens for a recipient without access restrictions.
+    /// @param to Recipient of the tokens.
+    /// @param amount Underlying token amount in the token's smallest units.
     function mint(
         address to,
         uint256 amount
@@ -37,6 +54,9 @@ contract TestToken is IERC20 {
         balanceOf[to] += amount;
     }
 
+    /// @notice Destroys test tokens from a holder without access restrictions.
+    /// @param from Address whose tokens are transferred or burned.
+    /// @param amount Underlying token amount in the token's smallest units.
     function burn(
         address from,
         uint256 amount
@@ -44,6 +64,9 @@ contract TestToken is IERC20 {
         balanceOf[from] -= amount;
     }
 
+    /// @notice Configures the external callback executed before each transfer.
+    /// @param target Callback contract; zero disables callbacks.
+    /// @param data Calldata sent to the callback target.
     function setCallback(
         address target,
         bytes calldata data
@@ -52,6 +75,10 @@ contract TestToken is IERC20 {
         callbackData = data;
     }
 
+    /// @notice Sets the caller allowance for a spender.
+    /// @param spender Address allowed to spend the tokens.
+    /// @param amount Underlying token amount in the token's smallest units.
+    /// @return Always true after a successful state update.
     function approve(
         address spender,
         uint256 amount
@@ -60,6 +87,11 @@ contract TestToken is IERC20 {
         return true;
     }
 
+    /// @notice Transfers tokens from the caller to a recipient.
+    /// @dev Test implementation; transfer operations invoke the configured callback before updating balances.
+    /// @param to Recipient of the tokens.
+    /// @param amount Underlying token amount in the token's smallest units.
+    /// @return Always true after a successful state update.
     function transfer(
         address to,
         uint256 amount
@@ -70,6 +102,12 @@ contract TestToken is IERC20 {
         return true;
     }
 
+    /// @notice Transfers tokens using the caller allowance from the source owner.
+    /// @dev Test implementation; transfer operations invoke the configured callback before updating balances.
+    /// @param from Address whose tokens are transferred or burned.
+    /// @param to Recipient of the tokens.
+    /// @param amount Underlying token amount in the token's smallest units.
+    /// @return Always true after a successful state update.
     function transferFrom(
         address from,
         address to,
@@ -83,6 +121,7 @@ contract TestToken is IERC20 {
         return true;
     }
 
+    /// @notice Invokes the configured transfer callback and propagates its failure.
     function _callback() private {
         if (callbackTarget != address(0)) {
             (bool ok,) = callbackTarget.call(callbackData);
@@ -91,13 +130,22 @@ contract TestToken is IERC20 {
     }
 }
 
+    /// @notice Deterministic V3 test double with collateral receipts and variable debt tokens.
     contract MockV3Pool is IPool {
+        /// @notice Primary test collateral token.
         TestToken public immutable collateral;
+        /// @notice Test token used for borrowing and repayment.
         TestToken public immutable debt;
+        /// @notice Test receipt token representing supplied collateral.
         TestToken public immutable aToken;
+        /// @notice Test token representing variable borrowing.
         TestToken public immutable variableDebt;
+        /// @notice Fixed annualized mock borrow rate scaled by 1e27.
         uint256 public constant RATE = 5e25;
 
+        /// @notice Creates the mock reserve configuration and its accounting dependencies.
+        /// @param collateralToken Test token accepted as collateral.
+        /// @param debtToken Test token used for borrowing and repayment.
         constructor(
             TestToken collateralToken,
             TestToken debtToken
@@ -108,12 +156,17 @@ contract TestToken is IERC20 {
             variableDebt = new TestToken("variableDebt", 6);
         }
 
+        /// @notice Mints test debt tokens to the mock venue as borrowable liquidity.
+        /// @param amount Underlying token amount in the token's smallest units.
         function mintLiquidity(
             uint256 amount
         ) external {
             debt.mint(address(this), amount);
         }
 
+        /// @notice Mints artificial debt to simulate an unhealthy position.
+        /// @param account User whose mock debt balance is increased.
+        /// @param amount Underlying token amount in the token's smallest units.
         function forceDebt(
             address account,
             uint256 amount
@@ -121,6 +174,10 @@ contract TestToken is IERC20 {
             variableDebt.mint(account, amount);
         }
 
+        /// @notice Models the getReserveData operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param asset Underlying reserve token address.
+        /// @return data Mock reserve token addresses and fixed rate, or an empty struct for unknown assets.
         function getReserveData(
             address asset
         ) external view returns (V3ReserveData memory data) {
@@ -130,6 +187,11 @@ contract TestToken is IERC20 {
             data.currentVariableBorrowRate = uint128(RATE);
         }
 
+        /// @notice Models the supply operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param asset Underlying reserve token address.
+        /// @param amount Underlying token amount in the token's smallest units.
+        /// @param onBehalfOf User whose protocol position is modified.
         function supply(
             address asset,
             uint256 amount,
@@ -141,6 +203,12 @@ contract TestToken is IERC20 {
             aToken.mint(onBehalfOf, amount);
         }
 
+        /// @notice Models the borrow operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param asset Underlying reserve token address.
+        /// @param amount Underlying token amount in the token's smallest units.
+        /// @param mode Mock borrow mode; only variable mode (2) is accepted.
+        /// @param onBehalfOf User whose protocol position is modified.
         function borrow(
             address asset,
             uint256 amount,
@@ -154,6 +222,13 @@ contract TestToken is IERC20 {
             debt.transfer(msg.sender, amount);
         }
 
+        /// @notice Models the repay operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param asset Underlying reserve token address.
+        /// @param amount Requested token amount; type(uint256).max requests repayment of all debt.
+        /// @param mode Mock borrow mode; only variable mode (2) is accepted.
+        /// @param onBehalfOf User whose protocol position is modified.
+        /// @return Actual underlying token amount repaid.
         function repay(
             address asset,
             uint256 amount,
@@ -168,6 +243,12 @@ contract TestToken is IERC20 {
             return repaid;
         }
 
+        /// @notice Models the withdraw operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param asset Underlying reserve token address.
+        /// @param amount Requested token amount; type(uint256).max requests withdrawal of all supplied tokens.
+        /// @param to Recipient of the tokens.
+        /// @return Actual underlying token amount withdrawn.
         function withdraw(
             address asset,
             uint256 amount,
@@ -182,11 +263,22 @@ contract TestToken is IERC20 {
             return withdrawn;
         }
 
+        /// @notice Models the setUserUseReserveAsCollateral operation for deterministic unit tests.
+        /// @dev No-op: this mock counts all receipt tokens as collateral. Both inputs are intentionally ignored.
         function setUserUseReserveAsCollateral(
             address,
             bool
         ) external { }
 
+        /// @notice Models the getUserAccountData operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param user User whose protocol position is queried.
+        /// @return Raw mock collateral balance.
+        /// @return Raw mock variable debt balance.
+        /// @return Zero borrowing-capacity placeholder.
+        /// @return Fixed liquidation-threshold placeholder of 8000 basis points.
+        /// @return Fixed LTV placeholder of 7500 basis points.
+        /// @return Simplified mock health factor scaled by 1e18.
         function getUserAccountData(
             address user
         ) external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
@@ -195,6 +287,10 @@ contract TestToken is IERC20 {
             return (c, d, 0, 8000, 7500, _healthFactor(user));
         }
 
+        /// @notice Computes the simplified mock health factor.
+        /// @dev Uses twice the raw collateral balance divided by raw debt, without oracle or decimal normalization.
+        /// @param user User whose protocol position is queried.
+        /// @return Health factor scaled by 1e18, or max uint256 when there is no debt.
         function _healthFactor(
             address user
         ) private view returns (uint256) {
@@ -203,9 +299,14 @@ contract TestToken is IERC20 {
         }
     }
 
+    /// @notice V4 Hub test double exposing a fixed annualized borrow rate.
     contract MockHub {
+        /// @notice Fixed annualized mock drawn rate scaled by 1e27.
         uint256 public constant RATE = 5e25;
 
+        /// @notice Returns the fixed mock base borrow rate.
+        /// @dev The asset identifier is intentionally ignored.
+        /// @return Annualized mock rate scaled by 1e27.
         function getAssetDrawnRate(
             uint256
         ) external pure returns (uint256) {
@@ -213,16 +314,29 @@ contract TestToken is IERC20 {
         }
     }
 
+    /// @notice V4 test double with two collateral reserves and one debt reserve.
     contract MockV4Spoke is ISpoke {
+        /// @notice Collateral token listed at mock reserve zero.
         TestToken public immutable collateralA;
+        /// @notice Collateral token listed at mock reserve one.
         TestToken public immutable collateralB;
+        /// @notice Test token used for borrowing and repayment.
         TestToken public immutable debt;
+        /// @notice Mock Hub supplying the fixed base borrow rate.
         MockHub public immutable hub;
+        /// @notice Reserved aggregate supply mapping; this mock tracks active balances in userSupplied.
         mapping(uint256 => uint256) public supplied;
+        /// @notice Supplied token amounts indexed by user and reserve.
         mapping(address => mapping(uint256 => uint256)) public userSupplied;
+        /// @notice Outstanding token debt indexed by user and reserve.
         mapping(address => mapping(uint256 => uint256)) public userDebt;
+        /// @notice Collateral flags indexed by user and reserve.
         mapping(address => mapping(uint256 => bool)) public enabled;
 
+        /// @notice Creates the mock reserve configuration and its accounting dependencies.
+        /// @param a First test collateral token.
+        /// @param b Second test collateral token.
+        /// @param d Test debt token.
         constructor(
             TestToken a,
             TestToken b,
@@ -234,12 +348,18 @@ contract TestToken is IERC20 {
             hub = new MockHub();
         }
 
+        /// @notice Mints test debt tokens to the mock venue as borrowable liquidity.
+        /// @param amount Underlying token amount in the token's smallest units.
         function mintLiquidity(
             uint256 amount
         ) external {
             debt.mint(address(this), amount);
         }
 
+        /// @notice Models the getReserve operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @return data Mock metadata for reserve zero, one, or two.
         function getReserve(
             uint256 reserveId
         ) external view returns (V4Reserve memory data) {
@@ -253,6 +373,13 @@ contract TestToken is IERC20 {
             data.collateralRisk = 100;
         }
 
+        /// @notice Models the supply operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param amount Underlying token amount in the token's smallest units.
+        /// @param onBehalfOf User whose protocol position is modified.
+        /// @return Supply shares credited.
+        /// @return Underlying tokens supplied.
         function supply(
             uint256 reserveId,
             uint256 amount,
@@ -265,6 +392,13 @@ contract TestToken is IERC20 {
             return (amount, amount);
         }
 
+        /// @notice Models the withdraw operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param amount Requested token amount; type(uint256).max requests withdrawal of all supplied tokens.
+        /// @param onBehalfOf User whose protocol position is modified.
+        /// @return Supply shares removed.
+        /// @return Underlying tokens withdrawn.
         function withdraw(
             uint256 reserveId,
             uint256 amount,
@@ -278,6 +412,13 @@ contract TestToken is IERC20 {
             return (withdrawn, withdrawn);
         }
 
+        /// @notice Models the borrow operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param amount Underlying token amount in the token's smallest units.
+        /// @param onBehalfOf User whose protocol position is modified.
+        /// @return Debt shares added.
+        /// @return Underlying tokens borrowed.
         function borrow(
             uint256 reserveId,
             uint256 amount,
@@ -290,6 +431,13 @@ contract TestToken is IERC20 {
             return (amount, amount);
         }
 
+        /// @notice Models the repay operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param amount Requested token amount; type(uint256).max requests repayment of all debt.
+        /// @param onBehalfOf User whose protocol position is modified.
+        /// @return Debt shares repaid.
+        /// @return Underlying tokens repaid.
         function repay(
             uint256 reserveId,
             uint256 amount,
@@ -302,6 +450,11 @@ contract TestToken is IERC20 {
             return (repaid, repaid);
         }
 
+        /// @notice Models the setUsingAsCollateral operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param usingAsCollateral Whether to enable this reserve as collateral.
+        /// @param onBehalfOf User whose protocol position is modified.
         function setUsingAsCollateral(
             uint256 reserveId,
             bool usingAsCollateral,
@@ -310,13 +463,21 @@ contract TestToken is IERC20 {
             enabled[onBehalfOf][reserveId] = usingAsCollateral;
         }
 
+        /// @notice Models the updateUserRiskPremium operation for deterministic unit tests.
+        /// @dev Premium is computed on demand in getUserAccountData; the argument is ignored.
         function updateUserRiskPremium(
             address
         ) external { }
+        /// @notice Models the updateUserDynamicConfig operation for deterministic unit tests.
+        /// @dev No dynamic configuration is stored; the argument is ignored.
         function updateUserDynamicConfig(
             address
         ) external { }
 
+        /// @notice Models the getUserAccountData operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param user User whose protocol position is queried.
+        /// @return data Mock premium, enabled collateral, debt, health, and reserve counts.
         function getUserAccountData(
             address user
         ) external view returns (V4AccountData memory data) {
@@ -329,6 +490,11 @@ contract TestToken is IERC20 {
             data.borrowCount = userDebt[user][2] == 0 ? 0 : 1;
         }
 
+        /// @notice Models the getUserTotalDebt operation for deterministic unit tests.
+        /// @dev Uses simplified mock accounting rather than live protocol pricing, interest, or validation.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @param user User whose protocol position is queried.
+        /// @return Outstanding debt in underlying token units.
         function getUserTotalDebt(
             uint256 reserveId,
             address user
@@ -336,12 +502,19 @@ contract TestToken is IERC20 {
             return userDebt[user][reserveId];
         }
 
+        /// @notice Resolves a mock reserve to its test token.
+        /// @param reserveId Spoke-local reserve identifier; V3 actions use zero.
+        /// @return Collateral A for zero, collateral B for one, and the debt token otherwise.
         function _token(
             uint256 reserveId
         ) private view returns (address) {
             return reserveId == 0 ? address(collateralA) : reserveId == 1 ? address(collateralB) : address(debt);
         }
 
+        /// @notice Computes the simplified mock health factor.
+        /// @dev Uses twice the raw collateral balance divided by raw debt, without oracle or decimal normalization.
+        /// @param user User whose protocol position is queried.
+        /// @return Health factor scaled by 1e18, or max uint256 when there is no debt.
         function _healthFactor(
             address user
         ) private view returns (uint256) {
@@ -352,14 +525,22 @@ contract TestToken is IERC20 {
         }
     }
 
+    /// @notice Unit coverage for position isolation, limits, authorization, and atomic execution.
     contract PositionAccountTest {
+        /// @notice Position factory used by the test fixture.
         PositionFactory private factory;
+        /// @notice Primary test collateral token.
         TestToken private collateral;
+        /// @notice Second test collateral token.
         TestToken private collateralB;
+        /// @notice Test token used for borrowing and repayment.
         TestToken private debt;
+        /// @notice Mock V3 Pool used by the fixture.
         MockV3Pool private pool;
+        /// @notice Mock V4 Spoke used by the fixture.
         MockV4Spoke private spoke;
 
+        /// @notice Checks V3 position isolation, full closure, refunds, and cleared protocol approvals.
         function testV3TwoAccountsAndClose() external {
             (PositionFactory f, TestToken c, TestToken unusedC2, TestToken d, MockV3Pool p) = _v3();
             unusedC2;
@@ -406,6 +587,7 @@ contract TestToken is IERC20 {
             require(debt.allowance(accountA, address(pool)) == 0, "debt allowance");
         }
 
+        /// @notice Checks that two V4 collateral reserves back one account and debt position.
         function testV4TwoCollateralSingleRiskAccount() external {
             (PositionFactory f, TestToken a, TestToken b, TestToken d, MockV4Spoke s) = _v4();
             factory = f;
@@ -434,6 +616,7 @@ contract TestToken is IERC20 {
             require(spoke.userSupplied(account, 0) == 10e18 && spoke.userSupplied(account, 1) == 5e18, "basket");
         }
 
+        /// @notice Checks that a post-borrow collateral change is included in the final V4 rate limit.
         function testV4FinalRiskPremiumRateLimitCoversBasketChanges() external {
             (PositionFactory f, TestToken a, TestToken b, TestToken d, MockV4Spoke s) = _v4();
             address account = f.predictPosition(address(this), 4, address(s), bytes32(uint256(10)));
@@ -464,6 +647,7 @@ contract TestToken is IERC20 {
             require(s.userDebt(account, 2) == 3e6 && s.enabled(account, 1), "rate rollback");
         }
 
+        /// @notice Checks that a caller other than the immutable owner cannot execute a batch.
         function testUnauthorizedCannotExecute() external {
             (PositionFactory f, TestToken c, TestToken unusedC2, TestToken d, MockV3Pool p) = _v3();
             unusedC2;
@@ -484,6 +668,7 @@ contract TestToken is IERC20 {
             require(!succeeded, "unauthorized execution");
         }
 
+        /// @notice Checks unsafe withdrawals, expired initialization, and duplicate deployment rejection.
         function testUnsafeWithdrawalExpiredPlanAndDuplicateSalt() external {
             (PositionFactory f, TestToken c, TestToken unusedC2, TestToken d, MockV3Pool p) = _v3();
             unusedC2;
@@ -529,6 +714,7 @@ contract TestToken is IERC20 {
             require(f.predictPosition(address(this), 3, address(p), bytes32(uint256(21))) != account, "new salt");
         }
 
+        /// @notice Checks reserve mismatch and failed risk checks roll back account creation and funding.
         function testCrossVenueAndFailedAtomicCreationLeaveNoCode() external {
             (PositionFactory f, TestToken c, TestToken c2, TestToken d, MockV3Pool p) = _v3();
             bytes32 salt = bytes32(uint256(22));
@@ -571,6 +757,7 @@ contract TestToken is IERC20 {
             require(failed && account.code.length == 0 && c.balanceOf(address(this)) == 10e18, "atomic rollback");
         }
 
+        /// @notice Checks repayment of an unhealthy account and rejection of a reverting token callback.
         function testRescueRepayAndCallbackReentrancy() external {
             (PositionFactory f, TestToken c, TestToken unusedC2, TestToken d, MockV3Pool p) = _v3();
             unusedC2;
@@ -616,12 +803,20 @@ contract TestToken is IERC20 {
             require(reentered && callbackAccount.code.length == 0, "callback reentrancy");
         }
 
+        /// @notice Attempts a position execution from a malicious token callback.
+        /// @param account Position account being queried or operated on.
         function reenter(
             address account
         ) external {
             PositionAccount(account).execute(new Funding[](0), new Action[](0), Limits(0, 0, 0));
         }
 
+        /// @notice Builds a fresh factory, tokens, and V3 Pool fixture.
+        /// @return Fresh position factory.
+        /// @return Primary collateral test token.
+        /// @return Additional unsupported collateral test token.
+        /// @return Debt test token.
+        /// @return Mock V3 Pool.
         function _v3() private returns (PositionFactory, TestToken, TestToken, TestToken, MockV3Pool) {
             TestToken c = new TestToken("Collateral", 18);
             TestToken c2 = new TestToken("Collateral2", 18);
@@ -630,6 +825,12 @@ contract TestToken is IERC20 {
             return (new PositionFactory(), c, c2, d, p);
         }
 
+        /// @notice Builds a fresh factory, tokens, and V4 Spoke fixture.
+        /// @return Fresh position factory.
+        /// @return First collateral test token.
+        /// @return Second collateral test token.
+        /// @return Debt test token.
+        /// @return Mock V4 Spoke.
         function _v4() private returns (PositionFactory, TestToken, TestToken, TestToken, MockV4Spoke) {
             TestToken a = new TestToken("CollateralA", 18);
             TestToken b = new TestToken("CollateralB", 18);
@@ -638,6 +839,10 @@ contract TestToken is IERC20 {
             return (new PositionFactory(), a, b, d, s);
         }
 
+        /// @notice Builds test limits with a deadline one day after the current timestamp.
+        /// @param minHealthFactor Minimum acceptable health factor, scaled by 1e18.
+        /// @param maxBorrowRateRay Maximum acceptable annualized borrow rate, scaled by 1e27.
+        /// @return Limits using the supplied health-factor floor and borrow-rate ceiling.
         function _limits(
             uint256 minHealthFactor,
             uint256 maxBorrowRateRay
@@ -646,7 +851,14 @@ contract TestToken is IERC20 {
         }
     }
 
+    /// @notice Separate caller used to test position-owner authorization.
     contract Actor {
+        /// @notice Attempts execution from a caller distinct from the position owner.
+        /// @param account Position account being queried or operated on.
+        /// @param funding Tokens and exact amounts to pull from the owner using prior ERC20 approvals.
+        /// @param actions Ordered protocol actions to execute atomically.
+        /// @param limits Deadline, minimum health factor, and maximum borrow rate for the batch.
+        /// @return True if execution succeeded; false if it reverted.
         function tryExecute(
             PositionAccount account,
             Funding[] memory funding,

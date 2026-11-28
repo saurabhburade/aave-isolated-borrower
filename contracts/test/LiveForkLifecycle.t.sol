@@ -6,43 +6,77 @@ import { IPool, ISpoke, V3ReserveData, V4AccountData } from "../src/interfaces/P
 import { PositionAccount } from "../src/PositionAccount.sol";
 import { PositionFactory } from "../src/PositionFactory.sol";
 
+/// @notice Foundry cheatcodes required by this script or fork test.
 interface Vm {
+    /// @notice Reads an environment variable, falling back to the supplied default.
+    /// @param name Environment variable name.
+    /// @param defaultValue Fallback value when the environment variable is unset.
+    /// @return Environment value or the supplied default.
     function envOr(
         string calldata name,
         string calldata defaultValue
     ) external returns (string memory);
+    /// @notice Creates and selects an Ethereum fork.
+    /// @dev Uses the requested block when supplied, otherwise the latest block.
+    /// @param rpcUrl Ethereum JSON-RPC endpoint used to create the fork.
+    /// @param blockNumber Block number to fork.
+    /// @return Identifier of the selected fork.
     function createSelectFork(
         string calldata rpcUrl,
         uint256 blockNumber
     ) external returns (uint256);
+    /// @notice Reads an environment variable, falling back to the supplied default.
+    /// @param name Environment variable name.
+    /// @param defaultValue Fallback value when the environment variable is unset.
+    /// @return Environment value or the supplied default.
     function envOr(
         string calldata name,
         uint256 defaultValue
     ) external returns (uint256);
+    /// @notice Creates and selects an Ethereum fork.
+    /// @dev Uses the requested block when supplied, otherwise the latest block.
+    /// @param rpcUrl Ethereum JSON-RPC endpoint used to create the fork.
+    /// @return Identifier of the selected fork.
     function createSelectFork(
         string calldata rpcUrl
     ) external returns (uint256);
+    /// @notice Replaces an address native-token balance in the test state.
+    /// @param account Address receiving the replacement balance.
+    /// @param newBalance Replacement native-token balance, in wei.
     function deal(
         address account,
         uint256 newBalance
     ) external;
+    /// @notice Impersonates an address for subsequent test calls.
+    /// @param account Address used as the subsequent caller.
     function startPrank(
         address account
     ) external;
+    /// @notice Stops impersonating the current test caller.
     function stopPrank() external;
 }
 
+/// @notice Wrapped ETH deposit interface used to prepare fork-test collateral.
 interface IWETH {
+    /// @notice Wraps the attached ETH into WETH for the caller.
     function deposit() external payable;
 }
 
+/// @notice ETH staking interface used to obtain stETH in fork tests.
 interface IStETH {
+    /// @notice Stakes the attached ETH and credits stETH shares to the caller.
+    /// @param referral Referral address supplied to the staking contract.
+    /// @return Staking shares issued for the deposit.
     function submit(
         address referral
     ) external payable returns (uint256);
 }
 
+/// @notice stETH wrapping interface used to obtain wstETH in fork tests.
 interface IWstETH {
+    /// @notice Wraps approved stETH into wstETH for the caller.
+    /// @param stETHAmount Amount of stETH to wrap, in stETH units.
+    /// @return Amount of wstETH received.
     function wrap(
         uint256 stETHAmount
     ) external returns (uint256);
@@ -52,16 +86,26 @@ interface IWstETH {
 /// @dev The test uses Foundry state deals only to provide test capital; every action and
 /// every risk read is against the deployed native Pool/Spoke at the selected fork block.
 contract LiveForkLifecycleTest {
+    /// @notice Foundry cheatcode interface at the canonical test VM address.
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
+    /// @notice Address impersonated as position owner in fork tests.
     address private constant OWNER = address(0xA11CE);
+    /// @notice Ethereum V3 Pool used by the fork fixture.
     address private constant V3_POOL = 0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2;
+    /// @notice Ethereum V4 Spoke used by the fork fixture.
     address private constant V4_MAIN_SPOKE = 0x94e7A5dCbE816e498b89aB752661904E2F56c485;
+    /// @notice Ethereum wrapped ETH used as collateral.
     address private constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    /// @notice Ethereum stETH used to prepare wrapped staking collateral.
     address private constant STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+    /// @notice Ethereum wrapped stETH used as the second collateral.
     address private constant WSTETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
+    /// @notice Ethereum USDC used for borrowing and repayment.
     address private constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
+    /// @notice Checks a V3 supply, borrow, repayment, and withdrawal lifecycle on an Ethereum fork.
+    /// @dev Returns without fork execution unless RUN_AAVE_LIVE_FORK=1.
     function testLiveV3CreateBorrowRepayWithdraw() external {
         if (vm.envOr("RUN_AAVE_LIVE_FORK", 0) != 1) return;
         _forkEthereum();
@@ -95,6 +139,8 @@ contract LiveForkLifecycleTest {
         require(debt == 0 && IERC20(WETH).balanceOf(account) == 0, "v3 native close");
     }
 
+    /// @notice Checks V4 borrowing, a second collateral addition, and full closure on an Ethereum fork.
+    /// @dev Returns without fork execution unless RUN_AAVE_LIVE_FORK=1.
     function testLiveV4CreateBorrowRepayWithdrawTwoCollateral() external {
         if (vm.envOr("RUN_AAVE_LIVE_FORK", 0) != 1) return;
         _forkEthereum();
@@ -142,12 +188,17 @@ contract LiveForkLifecycleTest {
         require(data.borrowCount == 0 && data.activeCollateralCount == 0, "v4 native close");
     }
 
+    /// @notice Builds fork-test limits with a one-day deadline and no effective borrow-rate cap.
+    /// @param minHealthFactor Minimum acceptable health factor, scaled by 1e18.
+    /// @return Execution limits using the supplied minimum health factor.
     function _limits(
         uint256 minHealthFactor
     ) private view returns (Limits memory) {
         return Limits(block.timestamp + 1 days, minHealthFactor, type(uint256).max);
     }
 
+    /// @notice Selects an Ethereum fork using ETHEREUM_RPC_URL and optional FORK_BLOCK.
+    /// @dev Defaults to the fixture RPC endpoint and the latest block when overrides are absent.
     function _forkEthereum() private {
         string memory rpc = vm.envOr("ETHEREUM_RPC_URL", string("https://eth.drpc.org"));
         uint256 blockNumber = vm.envOr("FORK_BLOCK", 0);
@@ -155,6 +206,10 @@ contract LiveForkLifecycleTest {
         else vm.createSelectFork(rpc, blockNumber);
     }
 
+    /// @notice Prepares native ETH, wrapped collateral, and repayment USDC for the fork-test owner.
+    /// @dev Obtains repayment USDC from the V3 Pool balance to preserve V4 Hub accounting.
+    /// @param includeWstEth Whether to also stake ETH and wrap stETH for a second collateral asset.
+    /// @return wstEthAmount Prepared wstETH balance, or zero when it was not requested.
     function _prepareOwner(
         bool includeWstEth
     ) private returns (uint256 wstEthAmount) {
