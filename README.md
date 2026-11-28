@@ -42,17 +42,23 @@ Open [localhost:3210/31337](http://127.0.0.1:3210/31337) and select **Connect wa
 
 ## Contract coverage
 
-Measured from the Solidity unit suite on November 27, 2026.
+Measured across 64 local Solidity tests on November 28, 2026, including fuzz tests and stateful invariants.
 
 | Lines | Statements | Branches | Functions |
 | ---: | ---: | ---: | ---: |
-| 81.04% | 75.23% | 39.06% | 86.96% |
+| 100.00% | 100.00% | 100.00% | 100.00% |
 
-See [coverage methodology and gaps](docs/benchmarks.md#contract-coverage).
+The suite includes 12 fuzz tests at 512 runs each and two stateful invariant properties at 128 sequences of 64 calls.
+The invariant handler manages two V3 and two V4 accounts and checks accounting, token conservation, isolation,
+authorization, refunds, and cleared approvals. The CREATE2 consistency safeguard is retained and tested through
+deliberately incorrect predictions, including deployment and funding rollback.
+
+See [coverage methodology and test scope](docs/benchmarks.md#contract-coverage). Coverage uses protocol mocks;
+native fork verification runs separately.
 
 ## Gas benchmarks
 
-Measured across 28 successful scenarios using Foundry 1.7.1, Solidity 0.8.24, Cancun, and the optimizer at 200 runs. V3 and V4 use the same single-collateral workload for comparison.
+Historical baseline measured on November 27, 2026 at revision `8fdfd7b`, across 28 successful scenarios using Foundry 1.7.1, Solidity 0.8.24, Cancun, and the optimizer at 200 runs. V3 and V4 use the same single-collateral workload for comparison. These gas figures predate the latest dispatch refactor.
 
 Factory deployment: **3,154,674 gas**, measured separately from position creation.
 
@@ -102,6 +108,19 @@ pnpm build
 ```
 
 [Coverage and gas reports](docs/benchmarks.md) include commands to reproduce the published measurements. [Verification notes](docs/verification.md) record native fork and browser checks.
+
+Run the contract suites independently:
+
+```sh
+pnpm --filter @aave-isolated/contracts test
+pnpm --filter @aave-isolated/contracts test:edge
+pnpm --filter @aave-isolated/contracts test:fuzz
+pnpm --filter @aave-isolated/contracts test:invariants
+pnpm --filter @aave-isolated/contracts coverage
+```
+
+The default contract test command includes all 64 local tests and leaves saved gas snapshots unchanged.
+Use `pnpm test:fork` for the opt-in native Aave lifecycle tests with an Ethereum RPC endpoint.
 
 ## Documentation
 

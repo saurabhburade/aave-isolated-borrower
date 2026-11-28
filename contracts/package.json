@@ -4,9 +4,15 @@
   "scripts": {
     "build": "forge build",
     "test:local": "node --test script/*.test.mjs",
-    "test": "forge test --match-path test/PositionAccount.t.sol -vv",
+    "test": "forge test --no-match-path test/LiveForkLifecycle.t.sol --isolate --gas-snapshot-emit false -vv",
+    "test:unit": "forge test --match-path test/PositionAccount.t.sol -vv",
+    "test:properties": "forge test --match-path test/PositionProperties.t.sol -vv",
+    "test:invariants": "forge test --match-path test/PositionInvariants.t.sol -vv",
     "test:gas": "forge test --match-path test/GasBenchmarks.t.sol --isolate",
     "test:gas:check": "forge test --match-path test/GasBenchmarks.t.sol --isolate --gas-snapshot-check true --gas-snapshot-emit false",
-    "test:fork": "RUN_AAVE_LIVE_FORK=1 forge test --match-contract LiveForkLifecycleTest --threads 1 --compute-units-per-second 40 -vv"
+    "test:fork": "RUN_AAVE_LIVE_FORK=1 forge test --match-contract LiveForkLifecycleTest --threads 1 --compute-units-per-second 40 -vv",
+    "test:edge": "forge test --match-path test/ContractEdgeCases.t.sol -vv",
+    "test:fuzz": "forge test --match-test testFuzz -vv",
+    "coverage": "forge coverage --no-match-path test/LiveForkLifecycle.t.sol --exclude-tests --no-match-coverage '^(script|test)/' --isolate --gas-snapshot-emit false"
   }
 }

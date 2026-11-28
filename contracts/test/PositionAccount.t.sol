@@ -527,6 +527,8 @@ contract TestToken is IERC20 {
 
     /// @notice Unit coverage for position isolation, limits, authorization, and atomic execution.
     contract PositionAccountTest {
+        /// @dev Number of callbacks that observed the exact active-account reentrancy error.
+        uint256 private reentryChecks;
         /// @notice Position factory used by the test fixture.
         PositionFactory private factory;
         /// @notice Primary test collateral token.
@@ -757,7 +759,7 @@ contract TestToken is IERC20 {
             require(failed && account.code.length == 0 && c.balanceOf(address(this)) == 10e18, "atomic rollback");
         }
 
-        /// @notice Checks repayment of an unhealthy account and rejection of a reverting token callback.
+        /// @notice Checks unhealthy repayment and exact reentrancy rejection during initialization.
         function testRescueRepayAndCallbackReentrancy() external {
             (PositionFactory f, TestToken c, TestToken unusedC2, TestToken d, MockV3Pool p) = _v3();
             unusedC2;
@@ -783,32 +785,33 @@ contract TestToken is IERC20 {
             PositionAccount(account).execute(rescueFunding, repay, Limits(block.timestamp + 1 days, 100e18, 0));
             require(p.variableDebt().balanceOf(account) == 0, "rescue repay");
 
-            c.setCallback(address(this), abi.encodeCall(this.reenter, (account)));
             bytes32 callbackSalt = bytes32(uint256(25));
             address callbackAccount = f.predictPosition(address(this), 3, address(p), callbackSalt);
+            c.setCallback(address(this), abi.encodeCall(this.reenter, (callbackAccount)));
+            c.mint(address(this), 1e18);
             c.approve(callbackAccount, 1e18);
             funding[0] = Funding(address(c), 1e18);
             Action[] memory callbackActions = new Action[](1);
             callbackActions[0] = Action(ActionKind.SUPPLY, address(c), 0, 1e18, true);
-            bool reentered;
-            try f.createPosition(
-                3, address(p), callbackSalt, funding, callbackActions, _limits(1e18, type(uint256).max)
-            ) returns (
-                address
-            ) {
-                reentered = false;
-            } catch {
-                reentered = true;
-            }
-            require(reentered && callbackAccount.code.length == 0, "callback reentrancy");
+            f.createPosition(3, address(p), callbackSalt, funding, callbackActions, _limits(1e18, type(uint256).max));
+            require(reentryChecks == 2, "funding and supply callbacks checked");
+            require(p.aToken().balanceOf(callbackAccount) == 1e18, "outer initialization succeeded");
+            require(p.aToken().balanceOf(account) == 10e18, "other account untouched");
         }
 
-        /// @notice Attempts a position execution from a malicious token callback.
+        /// @notice Requires the exact reentrancy error when calling the currently active account.
         /// @param account Position account being queried or operated on.
         function reenter(
             address account
         ) external {
-            PositionAccount(account).execute(new Funding[](0), new Action[](0), Limits(0, 0, 0));
+            (bool ok, bytes memory reason) = account.call(
+                abi.encodeCall(PositionAccount.execute, (new Funding[](0), new Action[](0), Limits(0, 0, 0)))
+            );
+            require(
+                !ok && keccak256(reason) == keccak256(abi.encodeWithSelector(PositionAccount.Reentered.selector)),
+                "exact reentry error"
+            );
+            ++reentryChecks;
         }
 
         /// @notice Builds a fresh factory, tokens, and V3 Pool fixture.

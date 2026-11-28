@@ -1,6 +1,6 @@
 # Contract coverage and gas benchmarks
 
-Measured on November 27, 2026 against source revision `8fdfd7b`. Contract coverage uses the existing seven-test unit suite. Gas results use a separate 28-scenario benchmark suite; production contract sources are unchanged.
+Contract coverage was refreshed on November 28, 2026 using the expanded 64-test local suite. The gas figures below remain the November 27 measurements against source revision `8fdfd7b`; they have not been refreshed by the test additions.
 
 ## Environment
 
@@ -14,34 +14,58 @@ Measured on November 27, 2026 against source revision `8fdfd7b`. Contract covera
 
 ## Contract coverage
 
-Measured across executable Solidity contracts in `contracts/src` using the seven existing mock unit tests. All seven tests passed.
+Measured across executable Solidity contracts in `contracts/src`. All **64 local tests passed**: seven original unit tests, 22 edge-case tests, five lifecycle/property tests, 28 gas scenarios, and two stateful invariant properties. Live fork tests are excluded.
 
 ### Solidity breakdown
 
 | File | Lines | Statements | Branches | Functions |
 | --- | ---: | ---: | ---: | ---: |
-| `PositionAccount.sol` | 79.52% (66/83) | 79.70% (106/133) | 48.00% (12/25) | 72.73% (8/11) |
-| `PositionFactory.sol` | 100.00% (15/15) | 90.48% (19/21) | 33.33% (1/3) | 100.00% (3/3) |
-| `SafeToken.sol` | 100.00% (6/6) | 87.50% (7/8) | 50.00% (1/2) | 100.00% (1/1) |
-| `adapters/AaveV3Actions.sol` | 90.57% (48/53) | 82.35% (70/85) | 38.89% (7/18) | 100.00% (4/4) |
-| `adapters/AaveV4Actions.sol` | 66.67% (36/54) | 55.95% (47/84) | 25.00% (4/16) | 100.00% (4/4) |
-| **Total** | **81.04% (171/211)** | **75.23% (249/331)** | **39.06% (25/64)** | **86.96% (20/23)** |
+| `PositionAccount.sol` | 100.00% (79/79) | 100.00% (127/127) | 100.00% (22/22) | 100.00% (11/11) |
+| `PositionFactory.sol` | 100.00% (15/15) | 100.00% (21/21) | 100.00% (3/3) | 100.00% (3/3) |
+| `SafeToken.sol` | 100.00% (6/6) | 100.00% (8/8) | 100.00% (2/2) | 100.00% (1/1) |
+| `adapters/AaveV3Actions.sol` | 100.00% (53/53) | 100.00% (85/85) | 100.00% (18/18) | 100.00% (4/4) |
+| `adapters/AaveV4Actions.sol` | 100.00% (54/54) | 100.00% (84/84) | 100.00% (16/16) | 100.00% (4/4) |
+| **Total** | **100.00% (207/207)** | **100.00% (325/325)** | **100.00% (61/61)** | **100.00% (23/23)** |
 
-### Scope and gaps
+### Test scope
 
-Solidity coverage includes the existing mock tests and executable production contracts. Tests, deployment scripts, and interfaces without executable code are excluded from the totals. Foundry disables optimization for coverage instrumentation; gas measurements use the optimized build separately. Foundry emitted source-map anchor warnings during coverage collection, so these are its reported source-level percentages.
+The default contract test command runs every local Solidity suite, including the gas scenarios, with snapshot writes disabled. Twelve parameterized fuzz tests each run 512 cases. They cover duplicate funding/refunds, recovery, reentrancy, repayment bounds, rate/health boundaries, rate rounding, CREATE2 identity, full lifecycle conservation, and atomic rollback. Boolean parameters select V3/V4; amount, owner, salt, and premium parameters explore additional input ranges.
 
-Gaps in this unit-only report include idle-token recovery and V4 repayment and withdrawal paths. The gas benchmark suite exercises those paths separately. Native fork and gas benchmark suites are excluded from these coverage totals.
+The invariant handler owns two V3 and two V4 accounts and exposes nine randomized operations: supply, borrow, repay, withdraw, unsolicited token donation, idle recovery, collateral configuration/refresh, a failing batch, and unauthorized calls. V4 accounts include a second collateral reserve. Two invariant properties each run 128 sequences of up to 64 calls (8,192 calls per property in the measured run), with unexpected handler reverts treated as failures.
 
-### Reproduce coverage
+The handler independently tracks collateral, debt, and unsolicited idle balances. It checks underlying token conservation, immutable authority/venue bindings, cleared protocol allowances, refunds, a conservative solvency bound, isolation of every untouched account, exact authorization errors, and atomic rollback. Expected failures are caught and checked for their exact error selectors rather than silently discarded. The mocks use fixed rates and simplified accounting; interest accrual, real oracle pricing, liquidations, and live protocol upgrades are outside these properties.
+
+The reentrancy regression targets the account currently being initialized and requires `Reentered()` from its callback. Additional fuzz cases exercise all three locked entry points during token callbacks and recovery. Temporarily disabling the guard or refund transfer is used as a local mutation check; production sources are restored afterward.
+
+### Coverage of defensive paths
+
+The constructor restricts the immutable version to 3 or 4. Each account dispatch helper handles V3 explicitly and otherwise uses V4, removing unreachable unsupported-version fallbacks. Comments describe a future factory-managed `mapping(uint8 => address)` registry with approved adapters pinned per account while preserving protocol-call context. Adding another version requires updating validation and all three dispatch helpers together.
+
+The factory's deployed-address mismatch check is retained and covered through fault injection. `predictPosition()` is virtual so a test-only derived factory can deliberately corrupt its prediction while inheriting the real deployment path. The regression checks the exact `InvalidPlan()` error for V3 and V4, absence of deployed account code, unchanged owner/venue balances and funding allowance, and absence of protocol positions. The test approves the actual address as well, ensuring initialization would succeed if the guard were removed; a local guard-removal mutation was detected as an unexpectedly successful creation. Normal production prediction behavior remains unchanged.
+
+The mismatch branch is exercised under an intentionally incorrect derived-factory prediction, not an actual CREATE2 address failure. The account refactor changes compiled creation code and therefore future CREATE2 address predictions.
+
+Foundry disables optimization for coverage and emits source-map anchor warnings. These are its reported source-level percentages, not proof that every possible input or sequence is correct. Internal library guard cases use a small test harness. Test/helper code, scripts, and interfaces without executable code are excluded from the production totals. Gas figures use a separate optimized build.
+
+### Reproduce verification
 
 Run from the repository root:
 
 ```sh
+pnpm --filter @aave-isolated/contracts test
+pnpm --filter @aave-isolated/contracts test:fuzz
+pnpm --filter @aave-isolated/contracts test:invariants
+pnpm --filter @aave-isolated/contracts coverage
+```
+
+For an LCOV artifact:
+
+```sh
 cd contracts
-forge coverage --force --match-path test/PositionAccount.t.sol \
-  --exclude-tests --no-match-coverage '^(script|test)/' \
-  --report summary --report lcov --report-file /tmp/aave-isolated-coverage.info
+forge coverage --no-match-path test/LiveForkLifecycle.t.sol \
+  --exclude-tests --no-match-coverage '^(script|test)/' --isolate \
+  --gas-snapshot-emit false --report summary --report lcov \
+  --report-file /tmp/aave-isolated-coverage.info
 ```
 
 ## Gas benchmarks

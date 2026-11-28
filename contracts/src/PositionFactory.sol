@@ -55,6 +55,7 @@ contract PositionFactory {
     /// @dev The result includes this factory, the current chain, owner, version, venue, salt, and account creation code.
     /// @dev Prediction does not validate the version or venue.
     /// @dev Changes to account source metadata can change the creation code and predicted CREATE2 address.
+    /// @dev Virtual for derived factories and fault-injection tests; creation rejects inconsistent predictions.
     /// @param accountOwner Owner bound to the position account.
     /// @param version Aave version, either 3 or 4.
     /// @param venue Aave V3 Pool or V4 Spoke contract.
@@ -65,7 +66,7 @@ contract PositionFactory {
         uint8 version,
         address venue,
         bytes32 salt
-    ) public view returns (address) {
+    ) public view virtual returns (address) {
         bytes32 deploymentSalt = _deploymentSalt(accountOwner, version, venue, salt);
         bytes32 initCodeHash = keccak256(
             abi.encodePacked(type(PositionAccount).creationCode, abi.encode(accountOwner, version, venue, salt))

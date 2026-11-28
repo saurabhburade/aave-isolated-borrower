@@ -84,6 +84,7 @@ contract PositionAccount {
         bytes32 accountSalt
     ) {
         if (accountOwner == address(0) || executionVenue.code.length == 0) revert InvalidPlan();
+        // Keep accepted versions aligned with all three adapter dispatch helpers below.
         if (accountVersion != 3 && accountVersion != 4) revert UnsupportedVersion();
         owner = accountOwner;
         version = accountVersion;
@@ -202,6 +203,10 @@ contract PositionAccount {
     }
 
     /// @notice Dispatches one action to the adapter for the bound Aave version.
+    /// @dev Constructor validation fixes the immutable version to 3 or 4, so the non-V3 path is V4.
+    /// @dev Future versions could use a factory-managed mapping(uint8 => address) of approved adapters.
+    /// @dev Such a registry must pin the selected adapter per account and preserve its protocol-call context.
+    /// @dev Adding a version requires updating constructor validation and all three dispatch helpers together.
     /// @param action Typed action containing the reserve, amount, and collateral setting.
     /// @return actual Underlying tokens supplied, withdrawn, borrowed, or repaid; zero for configuration actions.
     /// @return increasesRisk Whether the batch must enforce the final minimum health factor.
@@ -209,29 +214,26 @@ contract PositionAccount {
         Action calldata action
     ) private returns (uint256 actual, bool increasesRisk) {
         if (version == 3) return AaveV3Actions.execute(IPool(venue), action, owner);
-        if (version == 4) return AaveV4Actions.execute(ISpoke(venue), action, owner);
-        revert UnsupportedVersion();
+        return AaveV4Actions.execute(ISpoke(venue), action, owner);
     }
 
     /// @notice Reads the account health factor from its bound venue.
+    /// @dev Constructor validation guarantees that the non-V3 path is V4.
     /// @return Health factor scaled by 1e18.
     function _healthFactor() private view returns (uint256) {
         if (version == 3) return AaveV3Actions.healthFactor(IPool(venue), address(this));
-        if (version == 4) return AaveV4Actions.healthFactor(ISpoke(venue), address(this));
-        revert UnsupportedVersion();
+        return AaveV4Actions.healthFactor(ISpoke(venue), address(this));
     }
 
     /// @notice Reads the current borrow rate relevant to a borrow action.
+    /// @dev Constructor validation guarantees that the non-V3 path is V4.
     /// @param action Typed action containing the reserve, amount, and collateral setting.
     /// @return Annualized rate scaled by 1e27, including the account risk premium for V4.
     function _borrowRate(
         Action calldata action
     ) private view returns (uint256) {
         if (version == 3) return AaveV3Actions.borrowRate(IPool(venue), action.token);
-        if (version == 4) {
-            return AaveV4Actions.borrowRate(ISpoke(venue), action.reserveId, action.token, address(this));
-        }
-        revert UnsupportedVersion();
+        return AaveV4Actions.borrowRate(ISpoke(venue), action.reserveId, action.token, address(this));
     }
 
     /// @notice Returns unconsumed new funding to the owner.
